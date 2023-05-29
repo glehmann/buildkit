@@ -2,16 +2,24 @@ package urlutil
 
 import (
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 )
 
 const mask = "xxxxx"
 
+func skipRedactCredentials() bool {
+	return os.Getenv("INSECURE_SKIP_REDACT_CREDENTIALS") == "1"
+}
+
 // RedactCredentials takes a URL and redacts username and password from it.
 // e.g. "https://user:password@host.tld/path.git" will be changed to
 // "https://xxxxx:xxxxx@host.tld/path.git".
 func RedactCredentials(s string) string {
+	if skipRedactCredentials() {
+		return s
+	}
 	ru, err := url.Parse(s)
 	if err != nil {
 		return s // string is not a URL, just return it
